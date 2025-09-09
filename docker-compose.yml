@@ -1,0 +1,24 @@
+version: "3.9"
+
+services:
+  backend:
+    build: ./ECommerce-ASP.NET
+    container_name: backend
+    ports:
+      - "5135:5135"
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:5135"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  frontend:
+    build: ./ECommerce-Nextjs
+    container_name: frontend
+    ports:
+      - "3000:3000"
+    environment:
+      - API_URL=http://backend:5135 # Frontend calls backend by service name
+    depends_on:
+      backend:
+        condition: service_healthy

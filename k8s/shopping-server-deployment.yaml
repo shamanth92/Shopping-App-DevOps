@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-server
+  labels:
+    backendserver: shoppingserverbackend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      backendserver: shoppingserverbackend
+  template:
+    metadata:
+      labels:
+        backendserver: shoppingserverbackend
+    spec:
+      containers:
+        - name: shopping-server-backend
+          image: shopping-application-backend:latest
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 5135
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: shopping-server-service
+spec:
+  type: ClusterIP
+  selector:
+    backendserver: shoppingserverbackend
+  ports:
+    - port: 5135
+      targetPort: 5135
