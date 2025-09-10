@@ -1,0 +1,38 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-app
+  labels:
+    frontendapp: shoppingwebapp
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      frontendapp: shoppingwebapp
+  template:
+    metadata:
+      labels:
+        frontendapp: shoppingwebapp
+    spec:
+      containers:
+        - name: shopping-app-container
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+          env:
+            - name: API_URL
+              value: "http://shopping-server-service:5135"
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+spec:
+  type: ClusterIP
+  selector:
+    frontendapp: shoppingwebapp
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}

@@ -1,0 +1,4 @@
+apiVersion: v2
+name: shopping-server-backend
+version: 0.1.0
+description: .Net Core backend for Shopping website application

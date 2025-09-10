@@ -1,0 +1,4 @@
+apiVersion: v2
+name: shopping-website-app
+version: 0.1.0
+description: Nextjs frontend for Shopping website application

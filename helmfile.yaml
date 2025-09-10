@@ -1,0 +1,14 @@
+# repositories:
+#   - name: local
+#     url: file://C:/Users/ShamanthKumar/Documents/Nextjs/Shopping-Application/charts
+
+releases:
+  - name: shopping-app-frontend
+    chart: ./helmcharts/nextjs-frontend
+    values:
+      - ./helmcharts/nextjs-frontend/values.yaml
+
+  - name: shopping-server-backend
+    chart: ./helmcharts/asp.net-backend
+    values:
+      - ./helmcharts/asp.net-backend/values.yaml

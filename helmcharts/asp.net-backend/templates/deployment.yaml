@@ -1,0 +1,35 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: shopping-server
+  labels:
+    backendserver: shoppingserverbackend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      backendserver: shoppingserverbackend
+  template:
+    metadata:
+      labels:
+        backendserver: shoppingserverbackend
+    spec:
+      containers:
+        - name: shopping-server-backend
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          imagePullPolicy: {{ .Values.image.pullPolicy }}
+          ports:
+            - containerPort: {{ .Values.service.port }}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ .Values.service.name }}
+spec:
+  type: ClusterIP
+  selector:
+    backendserver: shoppingserverbackend
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: {{ .Values.service.port }}

@@ -1,0 +1,16 @@
+replicaCount: 1
+
+image:
+  repository: shopping-application-frontend
+  tag: latest
+  pullPolicy: IfNotPresent
+
+service:
+  name: shopping-app-service
+  port: 3000
+
+ingress:
+  enabled: true
+  host: shopping.local
+  path: /
+  apiPath: /api
