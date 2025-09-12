@@ -1,0 +1,14 @@
+name: DevOps Deploy Test
+
+on:
+  repository_dispatch:
+    types: [test-dispatch]
+
+jobs:
+  test-trigger:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Print received payload
+        run: |
+          echo "Image: ${{ github.event.client_payload.image }}"
+          echo "Tag: ${{ github.event.client_payload.tag }}"
