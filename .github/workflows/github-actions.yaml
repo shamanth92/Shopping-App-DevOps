@@ -1,14 +1,28 @@
-name: DevOps Deploy Test
+name: Deploy App to EKS
 
 on:
-  repository_dispatch:
-    types: [test-dispatch]
+  repository_dispatch: # from frontend/backend repos
+    types: [deploy-to-eks]
 
 jobs:
-  test-trigger:
+  deploy:
     runs-on: ubuntu-latest
     steps:
-      - name: Print received payload
+      - name: Checkout repo
+        uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ secrets.AWS_REGION }}
+
+      - name: Update kubeconfig
+        run: aws eks update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER }} --region ${{ secrets.AWS_REGION }}
+
+      - name: Deploy to EKS
         run: |
-          echo "Image: ${{ github.event.client_payload.image }}"
-          echo "Tag: ${{ github.event.client_payload.tag }}"
+          kubectl apply -f k8s/frontend
+          IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ github.event.client_payload.image }}:${{ github.event.client_payload.tag }}
+          kubectl set image deployment/shopping-app shopping-app-container=IMAGE_URI --record
