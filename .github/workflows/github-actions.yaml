@@ -2,7 +2,7 @@ name: Deploy App to EKS
 
 on:
   repository_dispatch: # from frontend/backend repos
-    types: [deploy-to-eks]
+    types: [deploy-to-eks, deploy-to-eks-backend]
 
 jobs:
   deploy:
@@ -32,12 +32,19 @@ jobs:
         run: |
           aws eks update-kubeconfig --region ${{ secrets.AWS_REGION }} --name ${{ secrets.AWS_EKS_CLUSTER}}
 
-      - name: Replace image URI in manifests
+      - name: Replace image URI in manifests frontend
+        if: github.event.action == 'deploy-to-eks'
         run: |
           # Replace placeholders in Kubernetes manifests
           sed -i "s|IMAGE_VALUE|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ github.event.client_payload.image }}:${{ github.event.client_payload.tag }}|g" k8s/frontend/shopping-deployment.yaml
 
-      - name: Deploy to EKS
+      - name: Replace image URI in manifests backend
+        if: github.event.action == 'deploy-to-eks-backend'
+        run: |
+          # Replace placeholders in Kubernetes manifests
+          sed -i "s|IMAGE_VALUE|${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ github.event.client_payload.image }}:${{ github.event.client_payload.tag }}|g" k8s/backend/shopping-server-deployment.yaml
+      - name: Deploy to EKS Frontend
+        if: github.event.action == 'deploy-to-eks'
         run: |
           # Apply the manifests
           kubectl apply -f k8s/frontend/shopping-deployment.yaml
@@ -46,49 +53,12 @@ jobs:
           # kubectl apply -f k8s/service.yaml
           # kubectl apply -f k8s/ingress.yaml
 
-      # - name: Verify deployment
-      #   run: |
-      #     # Wait for deployment to be ready
-      #     kubectl wait --for=condition=available --timeout=300s deployment/nextjs-app
+      - name: Deploy to EKS Backend
+        if: github.event.action == 'deploy-to-eks-backend'
+        run: |
+          # Apply the manifests
+          kubectl apply -f k8s/backend/shopping-server-deployment.yaml
 
-      #     # Get the status
-      #     kubectl get pods
-      #     kubectl get service
-
-      #     # Get LoadBalancer URL (if using simple-service.yaml)
-      #     echo "Application URL:"
-      #     kubectl get service shopping-app-service -o jsonpath='{.status.loadBalancer.ingress[0].hostname}'
-
-  # deploy:
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Checkout repo
-  #       uses: actions/checkout@v4
-
-  #     - name: Configure AWS credentials
-  #       uses: aws-actions/configure-aws-credentials@v4
-  #       with:
-  #         aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-  #         aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-  #         aws-region: ${{ secrets.AWS_REGION }}
-
-  #     - name: Update kubeconfig
-  #       run: aws eks update-kubeconfig --name ${{ secrets.AWS_EKS_CLUSTER }} --region ${{ secrets.AWS_REGION }}
-
-  #     - name: Deploy to EKS
-  #       run: |
-  #         kubectl apply -f k8s/frontend
-  #         IMAGE_URI=${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com/${{ github.event.client_payload.image }}:${{ github.event.client_payload.tag }}
-  #         kubectl set image deployment/shopping-app shopping-app-container=IMAGE_URI --record
-
-  # dispatch:
-  #   needs: deploy
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - name: Repository Dispatch
-  #       uses: peter-evans/repository-dispatch@v3
-  #       with:
-  #         token: ${{ secrets.PERSONAL_ACCESS_TOKEN }}
-  #         repository: ${{ secrets.DEVOPS_REPO }}
-  #         event-type: deploy-to-eks
-  #         client-payload: '{"image":"myprojects/shopping-backend","tag":"${{ github.sha }}"}'
+          # Option 2: Ingress + ClusterIP (requires AWS Load Balancer Controller)
+          # kubectl apply -f k8s/service.yaml
+          # kubectl apply -f k8s/ingress.yaml

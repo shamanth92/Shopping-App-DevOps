@@ -16,7 +16,7 @@ spec:
     spec:
       containers:
         - name: shopping-server-backend
-          image: shopping-application-backend:latest
+          image: IMAGE_VALUE
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5135
