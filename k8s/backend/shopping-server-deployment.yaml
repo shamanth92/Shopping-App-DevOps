@@ -24,10 +24,17 @@ spec:
             - name: firebase-secret
               mountPath: /App/ServiceAccount
               readOnly: true
+            - name: appsettings
+              mountPath: /app/appsettings.json
+              subPath: appsettings.json
+              readOnly: true
       volumes:
         - name: firebase-secret
           secret:
             secretName: firebase-service-account
+        - name: appsettings
+          configMap:
+            name: appsettings
 
 ---
 apiVersion: v1
