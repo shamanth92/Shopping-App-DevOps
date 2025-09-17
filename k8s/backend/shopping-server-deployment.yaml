@@ -25,7 +25,7 @@ spec:
               mountPath: /App/ServiceAccount
               readOnly: true
             - name: appsettings
-              mountPath: /app/appsettings.json
+              mountPath: /App/appsettings.json
               subPath: appsettings.json
               readOnly: true
       volumes:
