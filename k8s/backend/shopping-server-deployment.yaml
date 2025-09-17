@@ -20,6 +20,14 @@ spec:
           imagePullPolicy: IfNotPresent
           ports:
             - containerPort: 5135
+          volumeMounts:
+            - name: firebase-secret
+              mountPath: /App/ServiceAccount
+              readOnly: true
+      volumes:
+        - name: firebase-secret
+          secret:
+            secretName: firebase-service-account
 
 ---
 apiVersion: v1
